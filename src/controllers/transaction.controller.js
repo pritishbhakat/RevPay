@@ -22,6 +22,12 @@ const createTransaction = async (req, res) => {
             return res.status(404).json({message: "Account not found."});
         }
 
+        if(account.accountNumber !== beneficiaryAccountNumber || account.sortCode !== beneficiarySortCode){
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({message: "Invalid beneficiary account details."});
+        }
+
         if(account.status !== 'ACTIVE'){
             await session.abortTransaction();
             session.endSession();
@@ -43,7 +49,7 @@ const createTransaction = async (req, res) => {
         const today = new Date().toDateString();
 
         if(type === "WITHDRAWAL"){
-            if(account.lastWithrawalDate?.toDateString() === today){
+            if(account.lastWithrawalDate?.toDateString() !== today){
                 account.dailyWithdrawalAmount = 0; 
             }
 
@@ -61,6 +67,7 @@ const createTransaction = async (req, res) => {
 
             account.dailyWithdrawalAmount += amount;
             account.balance -= amount;
+            account.lastWithrawalDate = new Date();
 
         }
 

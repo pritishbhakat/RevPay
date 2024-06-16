@@ -23,7 +23,7 @@ import transactionsRoutes from "./routes/transactions.routes.js";
 
 app.use("/api/auth", authRoutes);
 
-app.use("/api/accounts", accountRoutes);
+app.use("/api/account", accountRoutes);
 
 app.use("/api/transactions", transactionsRoutes);
 

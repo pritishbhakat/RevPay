@@ -1,5 +1,6 @@
 import { Business } from "../models/business.model.js";
 import { options } from "../constants/index.js";
+import { Account } from "../models/account.model.js";
 
 const registerBusiness = async(req,res) => {
 
@@ -57,7 +58,7 @@ const loginBusiness = async(req,res) => {
   
       const accessToken = await business.generateAccessToken();
   
-      const loggedInBusiness = await Business.findById(business._id).select("-password");
+      const loggedInBusiness = await Business.findById(business._id).select("-password -__v -createdAt -updatedAt -_id");
   
       return res
       .status(200)
@@ -65,7 +66,7 @@ const loginBusiness = async(req,res) => {
       .json({
           business: loggedInBusiness,
           accessToken,
-          message: "Business logged in successfully.",
+          message: "Business Account logged in successfully.",
   
       })
   } catch (error) {
@@ -73,17 +74,16 @@ const loginBusiness = async(req,res) => {
     res.status(500).json({message: "Internal server error."});
   }
 
-
-
-
 }
+
+
 
 const logoutBusiness = async(req,res) => {
     try {
         return res
         .status(200)
         .clearCookie("accessToken", options)
-        .json({message: "Business logged out successfully."});
+        .json({message: "Business Account logged out successfully."});
 
     } catch (error) {
         console.log("Error while loging out business:",error.message);
@@ -92,4 +92,36 @@ const logoutBusiness = async(req,res) => {
 }
 
 
-export { registerBusiness, loginBusiness, logoutBusiness }
+const getAccountsDetails = async (req,res) => {
+    try {
+        const query = await Account.find({
+            businessId: req.business._id
+        }).select("-__v");
+        
+        let accounts = [];
+        query.map((q) => {
+            const account = {
+                accountId: q._id,
+                accountNumber: q.accountNumber,
+                sortCode: q.sortCode,
+                status: q.status,
+                balance: q.balance,
+                allowCredit: q.allowCredit,
+                allowDebit: q.allowDebit,
+                dailyWithdrawalAmount: q.dailyWithdrawalAmount,
+                dailyWithdrawalLimit: q.dailyWithdrawalLimit,
+                lastWithrawalDate: q.lastWithrawalDate,
+
+            };
+            accounts.push(account);
+        })
+
+        res.status(200).json({accounts:accounts});
+
+    } catch (error) {
+        console.log("Error while getting accounts details:",error.message);
+        res.status(500).json({message: "Internal server error."});
+    }
+}
+
+export { registerBusiness, loginBusiness, logoutBusiness, getAccountsDetails }

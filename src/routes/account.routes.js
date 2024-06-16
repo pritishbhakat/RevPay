@@ -5,10 +5,10 @@ import {  updateAccountStatus, updateTransactionControl, getAccountBalance} from
 const router = Router();
 
 
-router.route("/:accoundId/status").put(updateAccountStatus);
+router.route("/status").put(updateAccountStatus);
 
-router.route("/:accoundId/control").put(updateTransactionControl);
+router.route("/control").put(updateTransactionControl);
 
-router.route("/:accoundId/balance").get(getAccountBalance);
+router.route("/balance").get(getAccountBalance);
 
 export default router;

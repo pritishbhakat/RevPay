@@ -8,13 +8,21 @@ const createAccount = async (req, res) => {
             return res.status(400).json({message: "All fields are required."});
         }
 
+        if(accountNumber.length !== 10) {
+            return res.status(400).json({message: "Account number must be 10 digits."});
+        }
+
+        if(sortCode.length !== 8) {
+            return res.status(400).json({message: "sortCode must be 8 digits."});
+        }
+
         const existingAccount = await Account.findOne({accountNumber});
         if(existingAccount) {
             return res.status(400).json({message: "Account already exists."});
         }
 
         const account = new Account({
-            businessId: req.business._id,
+            businessName: req.business.username,
             accountNumber,
             sortCode,
             status
@@ -24,7 +32,7 @@ const createAccount = async (req, res) => {
 
         const accountDetails = {
             accountId: account._id,
-            businessId: account.businessId,
+            businessName: account.businessName,
             accountNumber: account.accountNumber,
             sortCode: account.sortCode,
             status: account.status,

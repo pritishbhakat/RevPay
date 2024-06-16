@@ -95,12 +95,13 @@ const logoutBusiness = async(req,res) => {
 const getAccountsDetails = async (req,res) => {
     try {
         const query = await Account.find({
-            businessId: req.business._id
+            businessName: req.business.username
         }).select("-__v");
         
         let accounts = [];
         query.map((q) => {
             const account = {
+                businessName: q.businessName,
                 accountId: q._id,
                 accountNumber: q.accountNumber,
                 sortCode: q.sortCode,

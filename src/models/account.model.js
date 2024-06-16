@@ -1,9 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 
 const accountSchema = new mongoose.Schema({
-    businessId: {
-        type: Schema.Types.ObjectId,
-        ref: "Business",
+    businessName: {
+        type: String,
         required: true
     },
     accountNumber: {
@@ -16,8 +15,8 @@ const accountSchema = new mongoose.Schema({
     sortCode: {
         type: String,
         required: true,
-        minlength: 6,
-        maxlength: 6
+        minlength: 8,
+        maxlength: 8
     },
     balance: {
         type: Number,

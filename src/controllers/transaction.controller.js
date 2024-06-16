@@ -9,6 +9,10 @@ const createTransaction = async (req, res) => {
         return res.status(400).json({message: "All fields are required."});
     }
 
+    if(type !== "DEPOSIT" && type !== "WITHDRAWAL"){
+        return res.status(400).json({message: "Invalid transaction type."});
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -31,19 +35,19 @@ const createTransaction = async (req, res) => {
         if(account.status !== 'ACTIVE'){
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({message: "Account is not active."});
+            return res.status(400).json({message: "Account is  inactive."});
         }
 
         if(type === "DEPOSIT" && !account.allowCredit){
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({message: "Account does not allow desposit money."});
+            return res.status(400).json({message: "Account does not allow to desposit money."});
         }
 
         if(type === "WITHDRAWAL" && !account.allowDebit){
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({message: "Account does not allow withdrawal money."});
+            return res.status(400).json({message: "Account does not allow to withdrawal money."});
         }
 
         const today = new Date().toDateString();
@@ -85,12 +89,14 @@ const createTransaction = async (req, res) => {
             sortCode: beneficiarySortCode
         })
 
+        // console.log(`Rs${amount} -> ${type}, New Balance: ${account.balance}`);
+
         await transaction.save({session});
 
         await session.commitTransaction();
         session.endSession();
 
-        res.status(201).json({message: `Rs ${amount} ${type === "DEPOSIT" ? "deposited" : "withdrawn" } successfully.`});
+        res.status(201).json({message: `Rs${amount} ${type === "DEPOSIT" ? "deposited" : "withdrawn" } successfully.`});
 
         
         
@@ -103,3 +109,4 @@ const createTransaction = async (req, res) => {
 }
 
 export { createTransaction };
+

@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 const accountSchema = new mongoose.Schema({
     businessName: {
@@ -43,7 +43,7 @@ const accountSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    lastWithrawalDate: {
+    lastWithdrawalDate: {
         type: Date,
         default: null
     }

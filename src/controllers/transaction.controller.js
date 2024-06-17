@@ -41,7 +41,7 @@ const createTransaction = async (req, res) => {
         if(type === "DEPOSIT" && !account.allowCredit){
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({message: "Account does not allow to desposit money."});
+            return res.status(400).json({message: "Account does not allow deposits."});
         }
 
         if(type === "WITHDRAWAL" && !account.allowDebit){
@@ -53,7 +53,7 @@ const createTransaction = async (req, res) => {
         const today = new Date().toDateString();
 
         if(type === "WITHDRAWAL"){
-            if(account.lastWithrawalDate?.toDateString() !== today){
+            if(account.lastWithdrawalDate?.toDateString() !== today){
                 account.dailyWithdrawalAmount = 0; 
             }
 
@@ -71,7 +71,7 @@ const createTransaction = async (req, res) => {
 
             account.dailyWithdrawalAmount += amount;
             account.balance -= amount;
-            account.lastWithrawalDate = new Date();
+            account.lastWithdrawalDate = new Date();
 
         }
 
@@ -89,22 +89,24 @@ const createTransaction = async (req, res) => {
             sortCode: beneficiarySortCode
         })
 
-        // console.log(`Rs${amount} -> ${type}, New Balance: ${account.balance}`);
+        console.log(`Rs${amount} -> ${type}, New Balance: ${account.balance}`);
 
         await transaction.save({session});
 
         await session.commitTransaction();
-        session.endSession();
 
         res.status(201).json({message: `Rs${amount} ${type === "DEPOSIT" ? "deposited" : "withdrawn" } successfully.`});
 
         
         
     } catch (error) {
+        
         await session.abortTransaction();
-        session.endSession();
         console.log("Error while creating transaction: ", error.message);
         res.status(500).json({message: "Internal server error."});
+
+    } finally {
+        session.endSession()
     }
 }
 

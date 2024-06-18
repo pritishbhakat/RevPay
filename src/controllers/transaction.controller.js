@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Transaction } from "../models/transaction.model.js";
 import { Account } from "../models/account.model.js";
 
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 10;
 
 const createTransaction = async (req, res, retryCount = 0) => {
     const { accountId, type, amount, beneficiaryAccountNumber, beneficiarySortCode} = req.body;

@@ -2,7 +2,9 @@ import mongoose from "mongoose";
 import { Transaction } from "../models/transaction.model.js";
 import { Account } from "../models/account.model.js";
 
-const createTransaction = async (req, res) => {
+const MAX_RETRIES = 5;
+
+const createTransaction = async (req, res, retryCount = 0) => {
     const { accountId, type, amount, beneficiaryAccountNumber, beneficiarySortCode} = req.body;
 
     if(!accountId || !type || !amount || !beneficiaryAccountNumber || !beneficiarySortCode) {
@@ -79,7 +81,24 @@ const createTransaction = async (req, res) => {
             account.balance += amount;
         }
 
-        await account.save({session});
+        const currentVersion = account.version;
+        account.version += 1;
+
+        const updatedAccount = await Account.findOneAndUpdate(
+            {_id: account._id, version: currentVersion},
+            {
+                balance: account.balance,
+                dailyWithdrawalAmount: account.dailyWithdrawalAmount,
+                lastWithdrawalDate: account.lastWithdrawalDate,
+                version: account.version
+            },
+            {new: true, session}
+        )
+
+        // await account.save({session});
+        if(!updatedAccount){
+            throw new Error("Write conflict")
+        }
 
         const transaction = new Transaction({
             accountId,
@@ -94,6 +113,7 @@ const createTransaction = async (req, res) => {
         await transaction.save({session});
 
         await session.commitTransaction();
+        session.endSession()
 
         res.status(201).json({message: `Rs${amount} ${type === "DEPOSIT" ? "deposited" : "withdrawn" } successfully.`});
 
@@ -102,11 +122,16 @@ const createTransaction = async (req, res) => {
     } catch (error) {
         
         await session.abortTransaction();
-        console.log("Error while creating transaction: ", error.message);
-        res.status(500).json({message: "Internal server error."});
+        session.endSession();
+        
+        if(retryCount < MAX_RETRIES && error.message.includes("Write conflict")){
+            console.log("Retrying transaction creation...");
+            setTimeout(() => createTransaction(req,res, retryCount + 1), 500);
+        } else {
+            console.log("Error while creating transaction: ", error.message);
+            res.status(500).json({message: "Internal server error."});
+        }
 
-    } finally {
-        session.endSession()
     }
 }
 

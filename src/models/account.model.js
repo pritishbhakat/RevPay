@@ -46,6 +46,10 @@ const accountSchema = new mongoose.Schema({
     lastWithdrawalDate: {
         type: Date,
         default: null
+    },
+    version: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 

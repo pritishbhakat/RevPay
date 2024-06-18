@@ -107,7 +107,7 @@ const createTransaction = async (req, res, retryCount = 0) => {
             sortCode: beneficiarySortCode
         })
 
-        console.log(`accountId: ${account._id}, accountNumber: ${account.accountNumber}, businessName: ${account.businessName},  Rs${amount} -> ${type}, New Balance: ${account.balance}`);
+        // console.log(`accountId: ${account._id}, accountNumber: ${account.accountNumber}, businessName: ${account.businessName},  Rs${amount} -> ${type}, New Balance: ${account.balance}`);
 
         await transaction.save({session});
 

@@ -128,7 +128,7 @@ const createTransaction = async (req, res, retryCount = 0) => {
             setTimeout(() => createTransaction(req,res, retryCount + 1), 200);
         } else {
             console.log("Error while creating transaction: ", error.message);
-            res.status(500).json({message: "Internal server error."});
+            res.status(500).json({message: `Failed to ${type == "DEPOSIT" ? "deposit" : "withdraw"} Rs${amount}.`});
         }
 
     }

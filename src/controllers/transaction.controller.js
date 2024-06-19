@@ -125,7 +125,7 @@ const createTransaction = async (req, res, retryCount = 0) => {
         
         if(retryCount < MAX_RETRIES && error.message.includes("Write conflict")){
             console.log(`Retrying transaction creation, attempt ${retryCount + 1}`);
-            setTimeout(() => createTransaction(req,res, retryCount + 1), 500);
+            setTimeout(() => createTransaction(req,res, retryCount + 1), 200);
         } else {
             console.log("Error while creating transaction: ", error.message);
             res.status(500).json({message: "Internal server error."});

@@ -14,15 +14,15 @@ const registerBusiness = async (req, res) => {
 
 
     try {
-        //converting into lowercase 
-        username = username.toLowerCase();  
-
+        
         const existingBusiness = await Business.findOne({ username })
-
+        
         if (existingBusiness) {
             return res.status(400).json({ message: "Business already registered." })
         }
-
+        
+        //converting into lowercase 
+        username = username.toLowerCase();  
 
         const business = new Business({ username, password });
 

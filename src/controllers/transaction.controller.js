@@ -107,7 +107,7 @@ const createTransaction = async (req, res, retryCount = 0) => {
             sortCode: beneficiarySortCode
         })
 
-        // console.log(`accountId: ${account._id}, accountNumber: ${account.accountNumber}, businessName: ${account.businessName},  Rs${amount} -> ${type}, New Balance: ${account.balance}`);
+        console.log(`accountId: ${account._id}, accountNumber: ${account.accountNumber}, businessName: ${account.businessName},  Rs${amount} -> ${type}, New Balance: ${account.balance}`);
 
         await transaction.save({session});
 
@@ -124,7 +124,7 @@ const createTransaction = async (req, res, retryCount = 0) => {
         session.endSession();
         
         if(retryCount < MAX_RETRIES && error.message.includes("Write conflict")){
-            console.log("Retrying transaction creation...");
+            console.log(`Retrying transaction creation, attempt ${retryCount + 1}`);
             setTimeout(() => createTransaction(req,res, retryCount + 1), 500);
         } else {
             console.log("Error while creating transaction: ", error.message);

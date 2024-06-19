@@ -26,6 +26,8 @@ const registerBusiness = async (req, res) => {
 
         const business = new Business({ username, password });
 
+        await business.save();
+
         res
         .status(201)
         .json({ 

@@ -8,63 +8,53 @@ const registerBusiness = async (req, res) => {
 
     let { username, password } = req.body;
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        if (!username) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "username is required." })
-        }
-
-        if (!password) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "password is required." })
-        }
-
-        const existingBusiness = await Business.findOne({ username });
-
-        if (existingBusiness) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ message: "Business already registered." })
-        }
-
-        //converting into lowercase 
-        username = username.toLowerCase();
-
-        const business = new Business({ username, password });
-
-        await business.save({session});
-        await session.commitTransaction();
-
-        res.status(201).json({ message: "Business created successfully." });
-
-    } catch (error) {
-        await session.abortTransaction();
-        console.log("Error while creating business:", error.message);
-        res.status(500).json({ message: "Internal server error." });
-
-    } finally {
-        session.endSession();
+    if(!username || !password){
+        return res.status(400).json({message: "username and password are required."});
     }
 
 
+    try {
+        //converting into lowercase 
+        username = username.toLowerCase();  
+
+        const existingBusiness = await Business.findOne({ username })
+
+        if (existingBusiness) {
+            return res.status(400).json({ message: "Business already registered." })
+        }
+
+
+        const business = new Business({ username, password });
+
+        res
+        .status(201)
+        .json({ 
+            message: "Business created successfully." ,
+            username: business.username
+        });
+
+    } catch (error) {
+        console.log("Error while creating business:", error.message);
+        res.status(500).json({ message: "Internal server error." });
+    } 
 }
 
+
+
+
 const loginBusiness = async (req, res) => {
+
+    const { username, password } = req.body;
+
+    if (!username) {
+        res.status(400).json({ message: "username is required." })
+    }
+
+    if (!password) {
+        res.status(400).json({ message: "password is required." })
+    }
+
     try {
-        const { username, password } = req.body;
-
-        if (!username) {
-            res.status(400).json({ message: "username is required." })
-        }
-
-        if (!password) {
-            res.status(400).json({ message: "password is required." })
-        }
 
         const business = await Business.findOne({ username });
 
@@ -95,12 +85,14 @@ const loginBusiness = async (req, res) => {
                 message: "Business Account logged in successfully.",
 
             })
+            
     } catch (error) {
         console.log("Error while loging in business:", error.message);
         res.status(500).json({ message: "Internal server error." });
     }
 
 }
+
 
 
 
@@ -116,6 +108,7 @@ const logoutBusiness = async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 }
+
 
 
 const getAccountsDetails = async (req, res) => {
@@ -137,7 +130,7 @@ const getAccountsDetails = async (req, res) => {
                 allowDebit: q.allowDebit,
                 dailyWithdrawalAmount: q.dailyWithdrawalAmount,
                 dailyWithdrawalLimit: q.dailyWithdrawalLimit,
-                lastWithrawalDate: q.lastWithrawalDate,
+                lastWithdrawalDate: q.lastWithdrawalDate,
 
             };
             accounts.push(account);

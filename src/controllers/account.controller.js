@@ -2,35 +2,25 @@ import mongoose from "mongoose";
 import { Account } from "../models/account.model.js";
 
 const createAccount = async (req, res) => {
+    const { accountNumber, sortCode, status } = req.body;
+    
+    if(!accountNumber || !sortCode || !status) {
+        return res.status(400).json({message: "All fields are required."});
+    }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    if(accountNumber.length !== 10) {
+        return res.status(400).json({message: "Account number must be 10 digits."});
+    }
+
+    if(sortCode.length !== 8) {
+        return res.status(400).json({message: "sortCode must be 8 digits."});
+    }
 
     try {
 
-        const { accountNumber, sortCode, status } = req.body;
-        if(!accountNumber || !sortCode || !status) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({message: "All fields are required."});
-        }
-
-        if(accountNumber.length !== 10) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({message: "Account number must be 10 digits."});
-        }
-
-        if(sortCode.length !== 8) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({message: "sortCode must be 8 digits."});
-        }
-
         const existingAccount = await Account.findOne({accountNumber});
+
         if(existingAccount) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(400).json({message: "Account already exists."});
         }
 
@@ -42,8 +32,7 @@ const createAccount = async (req, res) => {
             status
         })
 
-        await account.save({session});
-        await session.commitTransaction();
+        await account.save();
 
         const accountDetails = {
             accountId: account._id,
@@ -67,14 +56,12 @@ const createAccount = async (req, res) => {
         });
         
     } catch (error) {
-        await session.abortTransaction();
         console.log("Error while creating account: ", error.message);
         res.status(500).json({message: "Internal server error."});
         
-    } finally {
-        session.endSession();
     }
 }
+
 
 
 const updateAccountStatus = async (req,res) => {
@@ -93,7 +80,7 @@ const updateAccountStatus = async (req,res) => {
 
     try {
 
-        const account = await Account.findById(accountId);
+        const account = await Account.findById(accountId).session(session);
 
         if(!account) {
             await session.abortTransaction();
@@ -105,6 +92,7 @@ const updateAccountStatus = async (req,res) => {
         await account.save({session});
 
         await session.commitTransaction();
+        session.endSession();
 
         res
         .status(200)
@@ -115,13 +103,14 @@ const updateAccountStatus = async (req,res) => {
         
     } catch (error) {
         await session.abortTransaction();
+        session.endSession();
         console.log("Error while updating account status: ", error.message);
         res.status(500).json({message: "Internal server error."});
 
-    } finally {
-        session.endSession();
-    }
+    } 
 }
+
+
 
 const updateTransactionControl = async (req,res) => {
     const { allowCredit, allowDebit, setDailyWithdrawalLimit, accountId } = req.body;
@@ -134,7 +123,7 @@ const updateTransactionControl = async (req,res) => {
     session.startTransaction();
 
     try {
-        const account = await Account.findById(accountId);
+        const account = await Account.findById(accountId).session(session);
 
         if(! account){
             await session.abortTransaction();
@@ -149,6 +138,7 @@ const updateTransactionControl = async (req,res) => {
         await account.save({session});
 
         await session.commitTransaction();
+        session.endSession();
 
         res
         .status(200)
@@ -163,14 +153,15 @@ const updateTransactionControl = async (req,res) => {
 
     } catch (error) {
         await session.abortTransaction();
+        session.endSession();
         console.log("Error while updating transaction control: ", error.message);
         res.status(500).json({message: "Internal server error."});
 
-    } finally {
-        session.endSession();
     }
 
 }
+
+
 
 const getAccountBalance = async (req,res) => {
     const {accountId} = req.body;

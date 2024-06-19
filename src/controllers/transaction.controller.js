@@ -49,7 +49,7 @@ const createTransaction = async (req, res, retryCount = 0) => {
         if(type === "WITHDRAWAL" && !account.allowDebit){
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({message: "Account does not allow to withdrawal money."});
+            return res.status(400).json({message: "Account does not allow withdrawal of money"});
         }
 
         const today = new Date().toDateString();
